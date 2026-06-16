@@ -1,3 +1,5 @@
+import DailyForecast from "@/src/components/DailyForecast/DailyForecast";
+import HourlyForecast from "@/src/components/HourlyForecast/HourlyForecast";
 import WeatherPrimaryWidget from "@/src/components/WeatherPrimaryWidget";
 import { useCurrentLocation } from "@/src/hooks/getLocation";
 import { useCurrentWeather } from "@/src/hooks/weatherFetcher";
@@ -15,21 +17,23 @@ export default function Index() {
 
   if (loading)
     return (
-      <SafeAreaView className="justify-center items-center flex-1 bg-[#8BB8FF]">
+      <SafeAreaView className="justify-center items-center flex-1 bg-[#6fa6ed]">
         <ActivityIndicator color="#061B4D" size="large" />
       </SafeAreaView>
     );
 
   if (!data || error || locationError)
     return (
-      <SafeAreaView className="justify-center items-center flex-1 bg-[#8BB8FF]">
-        <Text>{error}</Text>
+      <SafeAreaView className="justify-center items-center flex-1 bg-[#6fa6ed]">
+        <Text className="font-sans">{error}</Text>
       </SafeAreaView>
     );
 
   return (
-    <SafeAreaView className="p-3 bg-[#8BB8FF] flex-1">
+    <SafeAreaView className="p-3 bg-[#6fa6ed] flex-1 relative">
       <WeatherPrimaryWidget data={data?.current} />
+      <HourlyForecast data={data.hourly} />
+      <DailyForecast data={data.daily} />
     </SafeAreaView>
   );
 }

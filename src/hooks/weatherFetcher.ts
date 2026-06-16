@@ -26,7 +26,7 @@ const getForecastApiUrl = (lat: number, lon: number, apiKey: string) => {
   return `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&units=metric&appid=${apiKey}`;
 };
 
-const CACHE_DURATION = 30 * 60 * 1000; // 30 mins
+const CACHE_DURATION = 0 * 60 * 1000; // 30 mins
 
 export const useCurrentWeather = ({ location }: UseCurrentWeatherParams): UseCurrentWeatherReturn => {
   const [data, setData] = useState<WeatherData | null>(null);

@@ -8,9 +8,10 @@ export type CurrentWeatherData = {
   humidity: number;
   windSpeed: number;
   rainChance: number;
+  icon: string;
 };
 
-export type HourlyForecast = {
+export type HourlyForecastT = {
   time: string;
   temperature: number;
   weatherCondition: string;
@@ -28,18 +29,19 @@ export type DailyForecast = {
 
 export type WeatherData = {
   current: CurrentWeatherData;
-  hourly: HourlyForecast[];
+  hourly: HourlyForecastT[];
   daily: DailyForecast[];
 };
 
-export function mapWeatherData(currentData: any, forecastData: any) {
+export function mapWeatherData(currentData: any, forecastData: any): WeatherData {
   // =========================
   // CURRENT DATA
   // =========================
-  const todayTemps = forecastData.list.map((item: any) => item.main.temp);
-  const highTemp = Math.max(...todayTemps);
-  const lowTemp = Math.min(...todayTemps);
-  const rainChance = forecastData.list?.[0]?.pop != null ? Math.round(forecastData.list[0].pop * 100) : 0;
+  const forecastList = Array.isArray(forecastData.list) ? forecastData.list : [];
+  const todayTemps = forecastList.map((item: any) => item.main.temp);
+  const highTemp = todayTemps.length ? Math.max(...todayTemps) : currentData.main.temp;
+  const lowTemp = todayTemps.length ? Math.min(...todayTemps) : currentData.main.temp;
+  const rainChance = forecastList[0]?.pop != null ? Math.round(forecastList[0].pop * 100) : 0;
 
   const current: CurrentWeatherData = {
     locationName: `${currentData.name}, ${currentData.sys.country}`,
@@ -53,44 +55,109 @@ export function mapWeatherData(currentData: any, forecastData: any) {
     lowTemp: Math.round(lowTemp),
     humidity: currentData.main.humidity,
     windSpeed: Math.round(currentData.wind.speed),
+    icon: currentData.weather[0].icon,
     rainChance,
   };
 
-  const hourly: HourlyForecast[] = forecastData.list.slice(0, 8).map((item: any) => ({
+  const hourly: HourlyForecastT[] = forecastList.slice(0, 6).map((item: any) => ({
     time: new Date(item.dt * 1000).toLocaleTimeString("en-US", { hour: "numeric", hour12: true }),
     temperature: Math.round(item.main.temp),
     weatherCondition: item.weather[0].main,
     icon: item.weather[0].icon,
   }));
 
+  const getDateKey = (date: Date) => {
+    const year = date.getFullYear();
+    const month = `${date.getMonth() + 1}`.padStart(2, "0");
+    const day = `${date.getDate()}`.padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
+  const getDayLabel = (date: Date) =>
+    date.toLocaleDateString("en-US", {
+      weekday: "short",
+    });
+
+  const summarizeDay = (date: Date, dayItems: any[]): DailyForecast => {
+    const temps = dayItems.map((item) => item.main.temp);
+    const firstItem = dayItems[0];
+
+    return {
+      day: getDayLabel(date),
+      highTemp: Math.round(Math.max(...temps)),
+      lowTemp: Math.round(Math.min(...temps)),
+      weatherCondition: firstItem.weather[0].main,
+      icon: firstItem.weather[0].icon,
+      rainChance: firstItem.pop != null ? Math.round(firstItem.pop * 100) : 0,
+    };
+  };
+
   const groupedByDay: Record<string, any[]> = {};
 
-  forecastData.list.forEach((item: any) => {
-    const date = new Date(item.dt * 1000).toLocaleDateString();
-    if (!groupedByDay[date]) {
-      groupedByDay[date] = [];
+  forecastList.forEach((item: any) => {
+    const date = new Date(item.dt * 1000);
+    const key = getDateKey(date);
+    if (!groupedByDay[key]) {
+      groupedByDay[key] = [];
     }
-    groupedByDay[date].push(item);
+    groupedByDay[key].push(item);
   });
 
-  const daily: DailyForecast[] = Object.keys(groupedByDay)
-    .slice(0, 7)
-    .map((dateKey) => {
-      const dayItems = groupedByDay[dateKey];
-      const temps = dayItems.map((item) => item.main.temp);
-      const firstItem = dayItems[0];
+  const today = new Date();
+  const todayKey = getDateKey(today);
 
-      return {
-        day: new Date(firstItem.dt * 1000).toLocaleDateString("en-US", {
-          weekday: "short",
-        }),
-        highTemp: Math.round(Math.max(...temps)),
-        lowTemp: Math.round(Math.min(...temps)),
-        weatherCondition: firstItem.weather[0].main,
-        icon: firstItem.weather[0].icon,
-        rainChance: firstItem.pop != null ? Math.round(firstItem.pop * 100) : 0,
+  if (!groupedByDay[todayKey]) {
+    groupedByDay[todayKey] = [
+      {
+        dt: Math.floor(today.getTime() / 1000),
+        main: { temp: current.temperature },
+        weather: [currentData.weather?.[0] ?? { main: current.weatherCondition, icon: current.icon }],
+        pop: current.rainChance / 100,
+      },
+    ];
+  }
+
+  const daily: DailyForecast[] = [];
+  let lastKnownForecast: DailyForecast | null = null;
+
+  for (let i = 0; i < 7; i += 1) {
+    const date = new Date(today);
+    date.setDate(today.getDate() + i);
+    const dateKey = getDateKey(date);
+    const dayItems = groupedByDay[dateKey];
+
+    if (dayItems && dayItems.length > 0) {
+      const dayForecast = summarizeDay(date, dayItems);
+      daily.push(dayForecast);
+      lastKnownForecast = dayForecast;
+    } else if (lastKnownForecast) {
+      daily.push({
+        ...lastKnownForecast,
+        day: getDayLabel(date),
+      });
+    } else if (forecastList.length > 0) {
+      const fallbackItem = forecastList[0];
+      const fallbackForecast: DailyForecast = {
+        day: getDayLabel(date),
+        highTemp: Math.round(fallbackItem.main.temp),
+        lowTemp: Math.round(fallbackItem.main.temp),
+        weatherCondition: fallbackItem.weather[0].main,
+        icon: fallbackItem.weather[0].icon,
+        rainChance: fallbackItem.pop != null ? Math.round(fallbackItem.pop * 100) : 0,
       };
-    });
+      daily.push(fallbackForecast);
+      lastKnownForecast = fallbackForecast;
+    } else {
+      daily.push({
+        day: getDayLabel(date),
+        highTemp: current.temperature,
+        lowTemp: current.temperature,
+        weatherCondition: current.weatherCondition,
+        icon: current.icon,
+        rainChance: current.rainChance,
+      });
+    }
+  }
 
   return {
     current,
