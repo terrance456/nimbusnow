@@ -1,41 +1,51 @@
-import type { ComponentType } from "react";
-import ClearDayIcon from "../assets/clear-day.svg";
-import ClearNightIcon from "../assets/clear-night.svg";
-import CloudIcon from "../assets/cloudy.svg";
-import DrizzleIcon from "../assets/drizzle.svg";
-import MistIcon from "../assets/mist.svg";
-import OvercastIcon from "../assets/overcast.svg";
-import PartlyCloudlyDay from "../assets/partly-cloudly-day.svg";
-import PartlyCloudlyNight from "../assets/partly-cloudly-night.svg";
-import RainIcon from "../assets/rain.svg";
-import SnowIcon from "../assets/snow.svg";
-import ThunderstormIcon from "../assets/thunderstorm.svg";
+// import type { ComponentType } from "react";
+// import ClearDayIcon from "../assets/clear-day.svg";
+// import ClearNightIcon from "../assets/clear-night.svg";
+// import CloudIcon from "../assets/cloudy.svg";
+// import DrizzleIcon from "../assets/drizzle.svg";
+// import MistIcon from "../assets/mist.svg";
+// import OvercastIcon from "../assets/overcast.svg";
+// import PartlyCloudlyDay from "../assets/partly-cloudly-day.svg";
+// import PartlyCloudlyNight from "../assets/partly-cloudly-night.svg";
+// import RainIcon from "../assets/rain.svg";
+// import SnowIcon from "../assets/snow.svg";
+// import ThunderstormIcon from "../assets/thunderstorm.svg";
 
-export const weatherIconMap: Record<string, ComponentType<any>> = {
-  "01d": ClearDayIcon,
-  "01n": ClearNightIcon,
+// Replaced SVG components with plain emoji strings.
+export const weatherIconMap: Record<string, string> = {
+  // Clear
+  "01d": "☀️",
+  "01n": "☀️",
 
-  "02d": PartlyCloudlyDay,
-  "02n": PartlyCloudlyNight,
+  // Few clouds / Partly cloudy
+  "02d": "🌤️",
+  "02n": "🌥️",
 
-  "03d": CloudIcon,
-  "03n": CloudIcon,
+  // Scattered clouds / Cloudy
+  "03d": "⛅",
+  "03n": "⛅",
 
-  "04d": OvercastIcon,
-  "04n": OvercastIcon,
+  // Broken/overcast
+  "04d": "🌥️",
+  "04n": "🌥️",
 
-  "09d": DrizzleIcon,
-  "09n": DrizzleIcon,
+  // Drizzle
+  "09d": "🌦️",
+  "09n": "🌦️",
 
-  "10d": RainIcon,
-  "10n": RainIcon,
+  // Rain
+  "10d": "🌧️",
+  "10n": "🌧️",
 
-  "11d": ThunderstormIcon,
-  "11n": ThunderstormIcon,
+  // Thunderstorm
+  "11d": "🌩️",
+  "11n": "🌩️",
 
-  "13d": SnowIcon,
-  "13n": SnowIcon,
+  // Snow
+  "13d": "🌨️",
+  "13n": "🌨️",
 
-  "50d": MistIcon,
-  "50n": MistIcon,
+  // Mist
+  "50d": "🌥️",
+  "50n": "🌥️",
 };

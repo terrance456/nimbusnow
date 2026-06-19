@@ -1,7 +1,11 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import Constants from "expo-constants";
 import { useEffect, useState } from "react";
+import { createMMKV } from "react-native-mmkv";
 import { mapWeatherData, WeatherData } from "../utils/weather-mapper";
+
+export const storage = createMMKV({
+  id: "weatherStorage--rn",
+});
 
 const getWeatherApiKey = () => {
   const extra = (Constants.expoConfig ?? Constants.manifest)?.extra as { WEATHER_API_KEY?: string } | undefined;
@@ -26,7 +30,7 @@ const getForecastApiUrl = (lat: number, lon: number, apiKey: string) => {
   return `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&units=metric&appid=${apiKey}`;
 };
 
-const CACHE_DURATION = 15 * 60 * 1000; // 15 mins
+const CACHE_DURATION = 5 * 60 * 1000; // 5 mins
 
 export const useCurrentWeather = ({ location }: UseCurrentWeatherParams): UseCurrentWeatherReturn => {
   const [data, setData] = useState<WeatherData | null>(null);
@@ -41,17 +45,15 @@ export const useCurrentWeather = ({ location }: UseCurrentWeatherParams): UseCur
         setLoading(true);
         setError(null);
 
-        const cacheKey = `weather_${location.lat}_${location.lon}`;
-        const cached = await AsyncStorage.getItem(cacheKey);
+        const cacheKey = `weather_${location.lat.toFixed(2)}_${location.lon.toFixed(2)}`;
+        const cached = storage.getString(cacheKey) || "{}";
+        const parsedCache = JSON.parse(cached);
+        const isCacheValid = Date.now() - parsedCache?.timestamp < CACHE_DURATION;
 
-        if (cached) {
-          const parsedCache = JSON.parse(cached);
-          const isCacheValid = Date.now() - parsedCache.timestamp < CACHE_DURATION;
-          if (isCacheValid) {
-            setData(parsedCache.data);
-            setLoading(false);
-            return;
-          }
+        if (cached && isCacheValid) {
+          setData(parsedCache.data);
+          setLoading(false);
+          return;
         }
 
         const API_KEY = getWeatherApiKey();
@@ -69,7 +71,7 @@ export const useCurrentWeather = ({ location }: UseCurrentWeatherParams): UseCur
         const forecastData = await forecastRes.json();
         const mappedData = mapWeatherData(currentData, forecastData);
 
-        await AsyncStorage.setItem(
+        storage.set(
           cacheKey,
           JSON.stringify({
             timestamp: Date.now(),

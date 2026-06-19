@@ -1,6 +1,6 @@
 import { weatherIconMap } from "@/src/utils/weather-icon";
 import React from "react";
-import { View } from "react-native";
+import { Text, View } from "react-native";
 
 type Props = {
   iconCode: string;
@@ -13,7 +13,8 @@ export default function WeatherIcon({ iconCode, size = 120, className }: Props) 
 
   return (
     <View className={className}>
-      <Icon width={size} height={size} />
+      {/* <Icon width={size} height={size} /> */}
+      <Text style={{ fontSize: size }}>{Icon}</Text>
     </View>
   );
 }

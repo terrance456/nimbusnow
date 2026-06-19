@@ -17,20 +17,20 @@ export default function Index() {
 
   if (loading)
     return (
-      <SafeAreaView className="justify-center items-center flex-1 bg-[#6fa6ed]">
+      <SafeAreaView className="justify-center items-center flex-1 bg-[#4a90d9]">
         <ActivityIndicator color="#061B4D" size="large" />
       </SafeAreaView>
     );
 
   if (!data || error || locationError)
     return (
-      <SafeAreaView className="justify-center items-center flex-1 bg-[#6fa6ed]">
+      <SafeAreaView className="justify-center items-center flex-1 bg-[#4a90d9]">
         <Text className="font-sans">{error}</Text>
       </SafeAreaView>
     );
 
   return (
-    <SafeAreaView className="p-3 bg-[#6fa6ed] flex-1 relative">
+    <SafeAreaView className="p-3 bg-[#4a90d9] flex-1 relative">
       <WeatherPrimaryWidget data={data?.current} />
       <HourlyForecast data={data.hourly} />
       <DailyForecast data={data.daily} />

@@ -1,3 +1,4 @@
+import { debounce } from "@/src/utils/debounce";
 import { DailyForecast as DailyForecastT } from "@/src/utils/weather-mapper";
 import BottomSheet, { BottomSheetFlatList } from "@gorhom/bottom-sheet";
 import * as Haptics from "expo-haptics";
@@ -13,16 +14,21 @@ interface DailyForecastProps {
 export default function DailyForecast({ data }: DailyForecastProps) {
   const bottomSheetRef = useRef<BottomSheet>(null);
   const [isInitialMount, setIsInitailMount] = useState(true);
-
   // Snap points: higher initial position and full expansion
   const snapPoints = useMemo(() => ["32%", "70%"], []);
+
+  // Create a debounced haptic function and expose it via useCallback
+  const hapticFeed = useCallback(
+    debounce(() => Haptics.selectionAsync()),
+    [],
+  );
 
   const handleSheetChanges = useCallback(
     (index: number) => {
       if (isInitialMount) return;
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      hapticFeed();
     },
-    [isInitialMount],
+    [isInitialMount, hapticFeed],
   );
 
   React.useEffect(() => {
@@ -49,7 +55,7 @@ export default function DailyForecast({ data }: DailyForecastProps) {
             <View className="flex-row gap-4 items-center p-5 bg-[#f6f8fa] rounded-xl">
               <Text className="w-[20%]">{item.day}</Text>
               <WeatherIcon className="w-[24%] text-center" iconCode={item.icon} size={40} />
-              <Text className="w-[25%]">{item.highTemp}°C</Text>
+              <Text className="w-[25%]">{item.currentTemp}°C</Text>
               <Text className="flex-1">{item.weatherCondition}</Text>
             </View>
           )}

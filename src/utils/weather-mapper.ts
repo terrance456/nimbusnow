@@ -20,7 +20,7 @@ export type HourlyForecastT = {
 
 export type DailyForecast = {
   day: string;
-  highTemp: number;
+  currentTemp: number;
   lowTemp: number;
   weatherCondition: string;
   icon: string;
@@ -84,7 +84,8 @@ export function mapWeatherData(currentData: any, forecastData: any): WeatherData
 
     return {
       day: getDayLabel(date),
-      highTemp: Math.round(Math.max(...temps)),
+      // Use the first forecasted temperature as the day's current temp
+      currentTemp: Math.round(firstItem.main.temp),
       lowTemp: Math.round(Math.min(...temps)),
       weatherCondition: firstItem.weather[0].main,
       icon: firstItem.weather[0].icon,
@@ -139,7 +140,7 @@ export function mapWeatherData(currentData: any, forecastData: any): WeatherData
       const fallbackItem = forecastList[0];
       const fallbackForecast: DailyForecast = {
         day: getDayLabel(date),
-        highTemp: Math.round(fallbackItem.main.temp),
+        currentTemp: Math.round(fallbackItem.main.temp),
         lowTemp: Math.round(fallbackItem.main.temp),
         weatherCondition: fallbackItem.weather[0].main,
         icon: fallbackItem.weather[0].icon,
@@ -150,7 +151,7 @@ export function mapWeatherData(currentData: any, forecastData: any): WeatherData
     } else {
       daily.push({
         day: getDayLabel(date),
-        highTemp: current.temperature,
+        currentTemp: current.temperature,
         lowTemp: current.temperature,
         weatherCondition: current.weatherCondition,
         icon: current.icon,
